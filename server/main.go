@@ -35,8 +35,11 @@ func main() {
 
 	api := r.Group("/api")
 
-    api.POST("/product", productHandler.Store)
-    api.GET("/product", productHandler.List)
+    api.POST("/product", productHandler.Create)
+    api.GET("/product", productHandler.GetAll)
+    api.GET("/product/:id", productHandler.GetById)
+    api.PUT("/product/:id", productHandler.Update)
+    api.DELETE("/product/:id", productHandler.Delete)
 
     r.Run(":3000")
 }
