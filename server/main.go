@@ -1,10 +1,12 @@
 package main
 
 import (
+    "go-api/server/handler"
+
 	"log"
 	"os"
 
-	"go-api/server/payment"
+// 	"go-api/server/payment"
 	"go-api/server/product"
 
 	"github.com/gin-gonic/gin"
@@ -25,15 +27,16 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	db.AutoMigrate(&payment.Payment{})
 	db.AutoMigrate(&product.Product{})
 
-	/*
-		r.POST("/task", taskHandler.Store)
-		r.GET("/task", taskHandler.FetchAll)
-		r.GET("/task/:id", taskHandler.FetchById)
-		r.PUT("/task/:id", taskHandler.Update)
-		r.DELETE("/task/:id", taskHandler.Delete)
-	*/
-	r.Run(":3000")
+    productRepository := product.NewRepository(db)
+    productService := product.NewService(productRepository)
+    productHandler := handler.NewProductHandler(productService)
+
+	api := r.Group("/api")
+
+    api.POST("/product", productHandler.Store)
+    api.GET("/product", productHandler.List)
+
+    r.Run(":3000")
 }

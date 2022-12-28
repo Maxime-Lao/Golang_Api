@@ -1,38 +1,35 @@
 package product
 
-import (
-	_ "gorm.io/driver/mysql"
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
-type ProductRepository struct {
-	DB *gorm.DB
+type Repository interface {
+	Insert(product Product) (Product, error)
+	ListAll() ([]Product, error)
 }
 
-func ProvideProductRepostiory(DB *gorm.DB) ProductRepository {
-	return ProductRepository{DB: DB}
+type repository struct {
+	db *gorm.DB
 }
 
-func (p *ProductRepository) FindAll() []Product {
+func NewRepository(db *gorm.DB) *repository {
+	return &repository{db}
+}
+
+func (r *repository) Insert(product Product) (Product, error) {
+	err := r.db.Create(&product).Error
+	if err != nil {
+		return product, err
+	}
+
+	return product, nil
+}
+
+func (r *repository) ListAll() ([]Product, error) {
 	var products []Product
-	p.DB.Find(&products)
+	err := r.db.Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
 
-	return products
-}
-
-func (p *ProductRepository) FindByID(id uint) Product {
-	var product Product
-	p.DB.First(&product, id)
-
-	return product
-}
-
-func (p *ProductRepository) Save(product Product) Product {
-	p.DB.Save(&product)
-
-	return product
-}
-
-func (p *ProductRepository) Delete(product Product) {
-	p.DB.Delete(&product)
+	return products, nil
 }
