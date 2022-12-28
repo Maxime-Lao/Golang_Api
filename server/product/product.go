@@ -1,10 +1,16 @@
 package product
 
-// on définit notre classe
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
 type Product struct {
-	Id        int    `json:"id"`
-	Name      string `json:"name"`
-	Price     string `json:"price"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	gorm.Model
+	Id        int       `json:"id"`
+	Name      string    `json:"name"`
+	Price     string    `json:"price"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

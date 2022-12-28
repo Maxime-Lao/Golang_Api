@@ -29,11 +29,11 @@ func main() {
 	db.AutoMigrate(&product.Product{})
 
 	/*
-		api.POST("/task", taskHandler.Store)
-		api.GET("/task", taskHandler.FetchAll)
-		api.GET("/task/:id", taskHandler.FetchById)
-		api.PUT("/task/:id", taskHandler.Update)
-		api.DELETE("/task/:id", taskHandler.Delete)
+		r.POST("/task", taskHandler.Store)
+		r.GET("/task", taskHandler.FetchAll)
+		r.GET("/task/:id", taskHandler.FetchById)
+		r.PUT("/task/:id", taskHandler.Update)
+		r.DELETE("/task/:id", taskHandler.Delete)
 	*/
 	r.Run(":3000")
 }
