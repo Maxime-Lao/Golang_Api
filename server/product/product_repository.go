@@ -69,22 +69,15 @@ func (r *repository) Update(id int, inputProduct InputProduct) (Product, error) 
 	product.Name = inputProduct.Name
 	product.Price = inputProduct.Price
 
-    if product.Name != "" {
-        uncite := r.db.Where(&Product{Name: product.Name}).First(&product).Error
-        if uncite != nil {
-            err = r.db.Save(&product).Error
-            if err != nil {
-                return product, err
-            }
-        } else {
-            return product, errors.New("The Product name already exist")
-        }
-    }else{
-        err = r.db.Save(&product).Error
-        if err != nil {
-            return product, err
-        }
-    }
+	uncite := r.db.Where("name = ? AND price = ?", product.Name, product.Price).First(&product).Error
+    if uncite != nil {
+		err = r.db.Save(&product).Error
+		if err != nil {
+			return product, err
+		}
+	} else {
+		return product, errors.New("The Product name already exist")
+	}
 
 	return product, nil
 }
