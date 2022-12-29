@@ -25,14 +25,14 @@ func NewRepository(db *gorm.DB) *repository {
 func (r *repository) Create(product Product) (Product, error) {
 
     uncite := r.db.Where(&Product{Name: product.Name}).First(&product).Error
-    	if uncite != nil {
-    		err := r.db.Create(&product).Error
-            	if err != nil {
-            		return product, err
-            	}
-    	} else {
-    	    return product, errors.New("The Product name already exist")
-    	}
+    if uncite != nil {
+        err := r.db.Create(&product).Error
+        if err != nil {
+            return product, err
+        }
+    } else {
+        return product, errors.New("The Product name already exist")
+    }
 
 	return product, nil
 }
@@ -59,6 +59,8 @@ func (r *repository) GetById(id int) (Product, error) {
 }
 
 func (r *repository) Update(id int, inputProduct InputProduct) (Product, error) {
+
+
 	product, err := r.GetById(id)
 	if err != nil {
 		return product, err
@@ -67,10 +69,17 @@ func (r *repository) Update(id int, inputProduct InputProduct) (Product, error) 
 	product.Name = inputProduct.Name
 	product.Price = inputProduct.Price
 
-	err = r.db.Save(&product).Error
-	if err != nil {
-		return product, err
-	}
+    uncite := r.db.Where(&Product{Name: product.Name}).First(&product).Error
+    if uncite != nil {
+        err = r.db.Save(&product).Error
+        if err != nil {
+            return product, err
+        }
+    } else {
+        return product, errors.New("The Product name already exist")
+    }
+
+
 
 	return product, nil
 }
