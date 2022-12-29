@@ -1,12 +1,12 @@
 package main
 
 import (
-    "go-api/server/handler"
+	"go-api/server/handler"
 
 	"log"
 	"os"
 
-// 	"go-api/server/payment"
+	"go-api/server/payment"
 	"go-api/server/product"
 
 	"github.com/gin-gonic/gin"
@@ -28,18 +28,33 @@ func main() {
 	}
 
 	db.AutoMigrate(&product.Product{})
+	db.AutoMigrate(&payment.Payment{})
 
-    productRepository := product.NewRepository(db)
-    productService := product.NewService(productRepository)
-    productHandler := handler.NewProductHandler(productService)
+	// Product
+	productRepository := product.NewRepository(db)
+	productService := product.NewService(productRepository)
+	productHandler := handler.NewProductHandler(productService)
+
+	// Payment
+	paymentRepository := payment.NewRepository(db)
+	paymentService := payment.NewService(paymentRepository)
+	paymentHandler := handler.NewPaymentHandler(paymentService)
 
 	api := r.Group("/api")
 
-    api.POST("/product", productHandler.Create)
-    api.GET("/product", productHandler.GetAll)
-    api.GET("/product/:id", productHandler.GetById)
-    api.PUT("/product/:id", productHandler.Update)
-    api.DELETE("/product/:id", productHandler.Delete)
+	// Product routes
+	api.POST("/product", productHandler.Create)
+	api.GET("/product", productHandler.GetAll)
+	api.GET("/product/:id", productHandler.GetById)
+	api.PUT("/product/:id", productHandler.Update)
+	api.DELETE("/product/:id", productHandler.Delete)
 
-    r.Run(":3000")
+	// Payment routes
+	api.POST("/payment", paymentHandler.Create)
+	api.GET("/payment", paymentHandler.GetAll)
+	api.GET("/payment/:id", paymentHandler.GetById)
+	api.PUT("/payment/:id", paymentHandler.Update)
+	api.DELETE("/payment/:id", paymentHandler.Delete)
+
+	r.Run(":3000")
 }
