@@ -1,6 +1,7 @@
 package main
 
 import (
+	broadcast "go-api/server/broadcast"
 	"go-api/server/handler"
 
 	"log"
@@ -30,6 +31,8 @@ func main() {
 	db.AutoMigrate(&product.Product{})
 	db.AutoMigrate(&payment.Payment{})
 
+	b := broadcast.NewBroadcaster(20)
+
 	// Product
 	productRepository := product.NewRepository(db)
 	productService := product.NewService(productRepository)
@@ -38,23 +41,24 @@ func main() {
 	// Payment
 	paymentRepository := payment.NewRepository(db)
 	paymentService := payment.NewService(paymentRepository)
-	paymentHandler := handler.NewPaymentHandler(paymentService)
+	paymentHandler := handler.NewPaymentHandler(paymentService, b)
 
 	api := r.Group("/api")
 
 	// Product routes
 	api.POST("/product", productHandler.Create)
-	api.GET("/product", productHandler.GetAll)
+	api.GET("/products", productHandler.GetAll)
 	api.GET("/product/:id", productHandler.GetById)
 	api.PUT("/product/:id", productHandler.Update)
 	api.DELETE("/product/:id", productHandler.Delete)
 
 	// Payment routes
 	api.POST("/payment", paymentHandler.Create)
-	api.GET("/payment", paymentHandler.GetAll)
+	api.GET("/payments", paymentHandler.GetAll)
 	api.GET("/payment/:id", paymentHandler.GetById)
 	api.PUT("/payment/:id", paymentHandler.Update)
 	api.DELETE("/payment/:id", paymentHandler.Delete)
+	api.GET("/stream", paymentHandler.Stream)
 
 	r.Run(":3000")
 }

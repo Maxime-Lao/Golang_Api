@@ -2,24 +2,26 @@ package handler
 
 import (
 	"go-api/server/payment"
+	"io"
 	"net/http"
 	"strconv"
+
+	broadcast "go-api/server/broadcast"
 
 	"github.com/gin-gonic/gin"
 )
 
 type paymentHandler struct {
 	paymentService payment.Service
+	broadcast      broadcast.Broadcaster
 }
 
-func NewPaymentHandler(paymentService payment.Service) *paymentHandler {
-	return &paymentHandler{paymentService}
+func NewPaymentHandler(paymentService payment.Service, broadcast broadcast.Broadcaster) *paymentHandler {
+	return &paymentHandler{paymentService, broadcast}
 }
 
-func (ts *paymentHandler) Hello(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "hello world",
-	})
+type Message struct {
+	Text string
 }
 
 func (th *paymentHandler) Create(c *gin.Context) {
@@ -47,6 +49,7 @@ func (th *paymentHandler) Create(c *gin.Context) {
 		return
 	}
 
+	th.broadcast.Submit(Message{Text: "New payment created"})
 	response := &Response{
 		Success: true,
 		Message: "New Payment created",
@@ -134,6 +137,7 @@ func (th *paymentHandler) Update(c *gin.Context) {
 		return
 	}
 
+	th.broadcast.Submit(Message{Text: "Payment updated"})
 	response := &Response{
 		Success: true,
 		Message: "New payment created",
@@ -166,5 +170,27 @@ func (th *paymentHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, &Response{
 		Success: true,
 		Message: "Payment successfully deleted",
+	})
+}
+
+func (ph *paymentHandler) Stream(c *gin.Context) {
+	listener := make(chan interface{})
+	ph.broadcast.Register(listener)
+	defer ph.broadcast.Unregister(listener)
+
+	clientGone := c.Request.Context().Done()
+	c.Stream(func(w io.Writer) bool {
+		select {
+		case <-clientGone:
+			return false
+		case message := <-listener:
+			serviceMsg, ok := message.(Message)
+			if !ok {
+				c.SSEvent("message", message)
+				return false
+			}
+			c.SSEvent("message", serviceMsg.Text)
+			return true
+		}
 	})
 }
