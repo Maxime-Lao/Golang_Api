@@ -21,7 +21,9 @@ func NewPaymentHandler(paymentService payment.Service, broadcast broadcast.Broad
 }
 
 type Message struct {
-	Text string
+	Text      string
+	Name      string
+	PricePaid float64
 }
 
 func (th *paymentHandler) Create(c *gin.Context) {
@@ -49,7 +51,12 @@ func (th *paymentHandler) Create(c *gin.Context) {
 		return
 	}
 
-	th.broadcast.Submit(Message{Text: "New payment created"})
+	th.broadcast.Submit(Message{
+		Text:      "New payment created",
+		Name:      newPayment.Product.Name,
+		PricePaid: newPayment.Product.Price,
+	})
+
 	response := &Response{
 		Success: true,
 		Message: "New Payment created",
@@ -137,10 +144,14 @@ func (th *paymentHandler) Update(c *gin.Context) {
 		return
 	}
 
-	th.broadcast.Submit(Message{Text: "Payment updated"})
+	th.broadcast.Submit(Message{
+		Text:      "Payment updated",
+		Name:      uPayment.Product.Name,
+		PricePaid: uPayment.Product.Price,
+	})
 	response := &Response{
 		Success: true,
-		Message: "New payment created",
+		Message: "Payment updated",
 		Data:    uPayment,
 	}
 	c.JSON(http.StatusCreated, response)
@@ -189,7 +200,7 @@ func (ph *paymentHandler) Stream(c *gin.Context) {
 				c.SSEvent("message", message)
 				return false
 			}
-			c.SSEvent("message", serviceMsg.Text)
+			c.SSEvent("message", serviceMsg.Text+", "+"Produit : "+serviceMsg.Name+", "+"Prix : "+strconv.FormatFloat(serviceMsg.PricePaid, 'f', 2, 64))
 			return true
 		}
 	})
